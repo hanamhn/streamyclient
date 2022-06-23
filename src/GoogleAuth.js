@@ -1,9 +1,11 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useRef } from "react";
 import { connect } from "react-redux";
 import { signIn, signOut } from "./actions";
 
 const GoogleAuth = (props) => {
-  const [isSignedIn, setSignedIn] = useState(null);
+  // console.log(props);
+  const { isSignedIn, signIn, signOut } = props;
+  // const [isSignedIn, setSignedIn] = useState(null);
   const auth = useRef(null);
 
   useEffect(() => {
@@ -17,11 +19,12 @@ const GoogleAuth = (props) => {
         })
         .then(() => {
           auth.current = window.gapi.auth2.getAuthInstance();
-          setSignedIn(auth.current.isSignedIn.get());
+          onAuthChange(auth.current.isSignedIn.get());
           auth.current.isSignedIn.listen(onAuthChange);
         });
     });
   }, [isSignedIn]);
+  // console.log(isSignedIn);
 
   // const onAuthChange = () => {
   //   setSignedIn(auth.current.isSignedIn.get());
@@ -29,9 +32,9 @@ const GoogleAuth = (props) => {
 
   const onAuthChange = (isSignedIn) => {
     if (isSignedIn) {
-      props.signIn();
+      signIn(auth.current.currentUser.get().getId());
     } else {
-      props.signOut();
+      signOut();
     }
   };
 
@@ -62,4 +65,8 @@ const GoogleAuth = (props) => {
   }
 };
 
-export default connect(null, { signIn, signOut })(GoogleAuth);
+const mapStateToProps = (state) => {
+  return { isSignedIn: state.auth.isSignedIn };
+};
+
+export default connect(mapStateToProps, { signIn, signOut })(GoogleAuth);
